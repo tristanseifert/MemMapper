@@ -1,0 +1,3 @@
+[submodule "libmsvg"]
+	path = libmsvg
+	url = git@github.com:malfer/libmsvg.git
