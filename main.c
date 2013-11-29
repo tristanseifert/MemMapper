@@ -3,6 +3,26 @@
 #include <string.h>
 #include "main.h"
 #include "msvg.h"
+/*
+	kMemMapNormal = 0,
+	kMemMapData = 1,
+	kMemMapCode = 2,
+	kMemMapStack = 3,
+	kMemMapBSS = 4,
+	kMemMapReserved = 5,
+	kMemMapUnused = 6,
+	kMemMapUserDefined = 7
+*/
+static char type_to_colour[8][8] = {
+	"#fff", // normal
+	"#ecc", // Data
+	"#cec", // Code
+	"#cce", // Stack
+	"#eec", // BSS
+	"#cee", // Reserved
+	"#ccc", // Unused
+	"#f0f", // User defined
+};
 
 int main(int argc, char** argv) {
 	if(argc != 3) {
@@ -18,7 +38,7 @@ int main(int argc, char** argv) {
 		return -1;
 	}
 
-	printf("Writing memory map to %s...", argv[2]);
+	printf("Writing memory map to %s...\n", argv[2]);
 
 	// Create SVG root element
 	MsvgElement *root, *son;
@@ -26,7 +46,6 @@ int main(int argc, char** argv) {
 	MsvgAddAttribute(root, "version", "1.2");
 	MsvgAddAttribute(root, "baseProfile", "tiny");
 	MsvgAddAttribute(root, "width", "300");
-	MsvgAddAttribute(root, "height", "1024");
 
 	// We need to add all the XMLN's
 	MsvgAddAttribute(root, "xmlns:dc", "http://purl.org/dc/elements/1.1/");
@@ -35,14 +54,54 @@ int main(int argc, char** argv) {
 	MsvgAddAttribute(root, "xmlns:svg", "http://www.w3.org/2000/svg");
 	MsvgAddAttribute(root, "xmlns", "http://www.w3.org/2000/svg");
 
+	memmap_entry_t* entry = memoryMap;
+	int y, height;
 
-	son = MsvgNewElement(EID_RECT, root);
-	MsvgAddAttribute(son, "x", "1");
-	MsvgAddAttribute(son, "y", "1");
-	MsvgAddAttribute(son, "width", "398");
-	MsvgAddAttribute(son, "height", "398");
-	MsvgAddAttribute(son, "stroke", "#F00");
-	MsvgAddAttribute(son, "fill", "#FFF");
+	y = 2; height = 50;
+
+	// Loop through everything
+	while(entry != NULL) {
+		char buffer[33];
+		char buffer2[33];
+
+		// Ideally, the height is representative of the size of this
+		height = (entry->end >> 8) - (entry->start >> 8);
+
+		// Limit height of the box
+		if(height < 50) {
+			height = 50;
+		} else if(height > 175) {
+			height = 175;
+		}
+
+		if(entry->type == kMemMapReserved) {
+			height = 50;	
+		}
+
+		son = MsvgNewElement(EID_RECT, root);
+		MsvgAddAttribute(son, "x", "75");
+		MsvgAddAttribute(son, "y", itoa(y, buffer, 10));
+		MsvgAddAttribute(son, "width", "225");
+		MsvgAddAttribute(son, "height", itoa(height, buffer2, 10));
+		MsvgAddAttribute(son, "stroke", "#000");
+		MsvgAddAttribute(son, "stroke-width", "1");
+		MsvgAddAttribute(son, "fill", (char*) &type_to_colour[entry->type]);
+
+/*		son = MsvgNewElement(EID_RECT, root);
+		MsvgAddAttribute(son, "x", "0");
+		MsvgAddAttribute(son, "y", itoa(y, buffer, 10));
+		MsvgAddAttribute(son, "width", "75");
+		MsvgAddAttribute(son, "height", itoa(height, buffer2, 10));
+		MsvgAddAttribute(son, "stroke", "#000");*/
+
+		entry = entry->next;
+
+		y += height + 4;
+	}
+
+
+	char buffer[33];
+	MsvgAddAttribute(root, "height", itoa(y + 16, buffer, 10));
 
 	if(!MsvgWriteSvgFile(root, argv[2])) {
 		perror("Could not write SVG output file\n");
@@ -71,7 +130,9 @@ memmap_entry_t* parse_memmap(char* filename) {
 	fclose(fp);
 
 	// Allocate memory for first entry
-	memmap_entry_t *entry, *lastEntry;
+	memmap_entry_t *entry;
+	memmap_entry_t *firstEntry = NULL;
+	memmap_entry_t *lastEntry = NULL;
 
 	char *linePointer; // used by strtok_r
 	char *line = strtok_r(file, "\n", &linePointer);
@@ -80,6 +141,10 @@ memmap_entry_t* parse_memmap(char* filename) {
 	while(line) {
 		entry = malloc(sizeof(memmap_entry_t));
 		memset(entry, 0x00, sizeof(memmap_entry_t));
+
+		if(!firstEntry) {
+			firstEntry = entry;
+		}
 
 		// Ignore comments
 		if(line[0] != '#') {
@@ -91,11 +156,14 @@ memmap_entry_t* parse_memmap(char* filename) {
 
 		if(lastEntry) {
 			lastEntry->next = entry;
+			printf("0x%X 0x%X\n", lastEntry, entry);
 		}
+
+		lastEntry = entry;
 	}
 
 	// We're done here
-	return entry;
+	return firstEntry;
 }
 
 /*

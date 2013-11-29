@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg version="1.2" baseProfile="tiny" width="300" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:svg="http://www.w3.org/2000/svg" xmlns="http://www.w3.org/2000/svg" height="950">
+  <rect x="75" y="2" width="225" height="50" stroke="#000" stroke-width="1" fill="#cee" />
+  <rect x="75" y="56" width="225" height="175" stroke="#000" stroke-width="1" fill="#cec" />
+  <rect x="75" y="235" width="225" height="175" stroke="#000" stroke-width="1" fill="#ecc" />
+  <rect x="75" y="414" width="225" height="175" stroke="#000" stroke-width="1" fill="#eec" />
+  <rect x="75" y="593" width="225" height="175" stroke="#000" stroke-width="1" fill="#ccc" />
+  <rect x="75" y="772" width="225" height="50" stroke="#000" stroke-width="1" fill="#cce" />
+  <rect x="75" y="826" width="225" height="50" stroke="#000" stroke-width="1" fill="#cee" />
+  <rect x="75" y="880" width="225" height="50" stroke="#000" stroke-width="1" fill="#cee" />
+</svg>
