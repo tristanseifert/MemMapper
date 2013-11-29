@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "main.h"
+#include "msvg.h"
 
 int main(int argc, char** argv) {
 	if(argc != 3) {
@@ -14,10 +15,39 @@ int main(int argc, char** argv) {
 
 	if(!memoryMap) {
 		perror("Could not open or parse memory map.\n");
-		return 1;
+		return -1;
 	}
 
 	printf("Writing memory map to %s...", argv[2]);
+
+	// Create SVG root element
+	MsvgElement *root, *son;
+	root = MsvgNewElement(EID_SVG, NULL);
+	MsvgAddAttribute(root, "version", "1.2");
+	MsvgAddAttribute(root, "baseProfile", "tiny");
+	MsvgAddAttribute(root, "width", "300");
+	MsvgAddAttribute(root, "height", "1024");
+
+	// We need to add all the XMLN's
+	MsvgAddAttribute(root, "xmlns:dc", "http://purl.org/dc/elements/1.1/");
+	MsvgAddAttribute(root, "xmlns:cc", "http://creativecommons.org/ns");
+	MsvgAddAttribute(root, "xmlns:rdf", "http://www.w3.org/1999/02/22-rdf-syntax-ns#");
+	MsvgAddAttribute(root, "xmlns:svg", "http://www.w3.org/2000/svg");
+	MsvgAddAttribute(root, "xmlns", "http://www.w3.org/2000/svg");
+
+
+	son = MsvgNewElement(EID_RECT, root);
+	MsvgAddAttribute(son, "x", "1");
+	MsvgAddAttribute(son, "y", "1");
+	MsvgAddAttribute(son, "width", "398");
+	MsvgAddAttribute(son, "height", "398");
+	MsvgAddAttribute(son, "stroke", "#F00");
+	MsvgAddAttribute(son, "fill", "#FFF");
+
+	if(!MsvgWriteSvgFile(root, argv[2])) {
+		perror("Could not write SVG output file\n");
+		return -1;
+	}
 
 	return 0;
 }
